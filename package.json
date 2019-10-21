@@ -31,6 +31,7 @@
     "fly-json-odm": "^1.5.5"
   },
   "devDependencies": {
+    "fly-json-odm": "^1.5.5",
     "coveralls": "^3.0.7",
     "mocha": "^6.2.2",
     "mocha-lcov-reporter": "^1.3.0",
