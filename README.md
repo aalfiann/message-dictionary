@@ -24,12 +24,10 @@ $ npm install message-dictionary
 ```javascript
 const MessageDictionary = require('message-dictionary');
 
-var message = new MessageDictionary().init();
-
 // or with config
 var config = {
+    dirPath: './locales',  // Required
     locale: 'en',
-    dirPath: './locales',
     namespace: 'app'
 }
 var message = new MessageDictionary(config).init();
