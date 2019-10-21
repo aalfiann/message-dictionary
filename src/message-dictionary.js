@@ -14,7 +14,7 @@ class MessageDictionary {
      * Default is
      * {
      *   "locale": "en",
-     *   "dirPath": "locales",
+     *   "dirPath": "./locales",
      *   "namespace": "app"
      * } 
      */
@@ -31,7 +31,7 @@ class MessageDictionary {
             throw new Error('Config must be an object type!');
         }
         if(!config.locale) this.locale = "en";
-        if(!config.dirPath) this.dirPath = "locales";
+        if(!config.dirPath) this.dirPath = "./locales";
         if(!config.namespace) this.namespace = "app";
     }
 
@@ -53,19 +53,6 @@ class MessageDictionary {
     }
 
     /**
-     * Make Directory if not exists
-     * @param {string} file     File path
-     * @param {fn} callback     Callback(error)
-     * @return {callback} 
-     */
-    makeDir(file, callback) {
-        mkdirp(path.dirname(file), function (err) {
-            if(err) return callback(err);
-            callback();
-        });
-    }
-
-    /**
      * Write to file
      * @param {fn} callback      [optional] Callback(error, data)
      */
@@ -73,9 +60,9 @@ class MessageDictionary {
         var self = this;
         if(!this.nosql.isEmpty(this.table) && this.nosql.isArray(this.table)) {
             var file = this.getFilename();
-            this.makeDir(path.dirname(file), function(err) {
+            mkdirp(path.dirname(file), function (err) {
                 if (err) return callback(err);
-                self.writeStream(file,{flag:'w'},JSON.stringify(self.table),function(err,data) {
+                self.writeStream(file,{flag:'w+'},JSON.stringify(self.table),function(err,data) {
                     if(err) return callback(err);
                     callback(null,data);
                 });
@@ -93,7 +80,7 @@ class MessageDictionary {
      * @param {string} file             File path to be write
      * @param {string|object} opt       Default is { flag="w" } 
      * @param {string} data             Content to write
-     * @param {fn} callback              Callback(error, data)
+     * @param {fn} callback              Callback(error, content)
      * @return {callback} 
      */
     writeStream(file,opt,data,callback) {
@@ -124,12 +111,12 @@ class MessageDictionary {
     /**
      * Read Stream
      * @param {string} file     File path to be read
-     * @param {fn} callback      Callback(error, content)
+     * @param {fn} callback      Callback(error, data)
      * @return {callback}
      */
     readStream(file, callback) {
         const chunks = [];
-        let stream = fs.createReadStream(file);
+        let stream = fs.createReadStream(file,{flag:'w+'});
         stream.on('error', (err) => {
             callback(err);
         });
@@ -168,23 +155,17 @@ class MessageDictionary {
     reload(callback) {
         var self = this;
         var file = self.getFilename();
-        self.makeDir(file,function(err) {
+        self.readStream(file, (err, data) => {
             if(err) {
                 if(self.isCallable(callback)) return callback(err);
-            } else {
-                self.readStream(file, (err, data) => {
-                    if(err) {
-                        if(self.isCallable(callback)) return callback(err);
-                    } else {    
-                        self.table = self.nosql.deepClone(JSON.parse(data));
-                        if(self.isCallable(callback)) {
-                            callback(null, {
-                                status: true,
-                                message: 'Successfully to reload datatable!'
-                            });
-                        }
-                    }
-                });
+            } else {    
+                self.table = self.nosql.deepClone(JSON.parse(data));
+                if(self.isCallable(callback)) {
+                    callback(null, {
+                        status: true,
+                        message: 'Successfully to reload datatable!'
+                    });
+                }
             }
         });
     }
@@ -319,8 +300,10 @@ class MessageDictionary {
         var self = this;
         self.table = [];
         fs.unlink(this.getFilename(), function (err) {
-            if(err) {
-                if(self.isCallable(callback)) return callback(err);
+            if(self.isCallable(callback)) {
+                if(err) {
+                    return callback(err);
+                }
             }
         });
     }

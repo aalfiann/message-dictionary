@@ -18,25 +18,25 @@ describe('config test', function() {
         const config = Object.create({name: 'inherited'})
         var msg = new MessageDictionary(config);
         assert.equal(msg.locale,'en');
-        assert.equal(msg.dirPath,'locales');
+        assert.equal(msg.dirPath,'./locales');
         assert.equal(msg.namespace,'app');
     });
 
     it('check default config', function() {
         var msg = new MessageDictionary();
         assert.equal(msg.locale,'en');
-        assert.equal(msg.dirPath,'locales');
+        assert.equal(msg.dirPath,'./locales');
         assert.equal(msg.namespace,'app');
     });
 
     it('change default config', function() {
         var msg = new MessageDictionary({
             locale:'id',
-            dirPath:'locales/api',
+            dirPath:'./locales/api',
             namespace:'error'
         });
         assert.equal(msg.locale,'id');
-        assert.equal(msg.dirPath,'locales/api');
+        assert.equal(msg.dirPath,'./locales/api');
         assert.equal(msg.namespace,'error');
     });
 

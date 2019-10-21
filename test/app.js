@@ -55,7 +55,6 @@ describe('message-dictionary test', function() {
     });
 
     it('get message asynchronous', function(done) {
-        this.timeout(10000);
         var msg = new MessageDictionary();
         var result = undefined;
         var expected = { code: '123', message: 'Insert data successfully!' };

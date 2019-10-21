@@ -101,8 +101,8 @@ describe('intentional failure test', function() {
     it('read stream with wrong path', function(done) {
         this.timeout(10000);
         var msg = new MessageDictionary().init();
-        msg.readStream('/',function(err,data) {
-            assert.notEqual(err,null);
+        msg.readStream('home/',function(err,data) {
+            assert.equal(err.code,'ENOENT');
             done();
         });
     });
@@ -113,7 +113,7 @@ describe('intentional failure test', function() {
             dirPath:'/'
         }).init();
         msg.reload(function(err) {
-            assert.notEqual(err,null);
+            assert.equal(err.code,'ENOENT');
             done();
         });
     });
@@ -174,15 +174,8 @@ describe('intentional failure test', function() {
 
     it('write stream', function() {
         var msg = new MessageDictionary().init();
-        msg.writeStream('',{ flag:'wx'},'',function(err,data) {
-            assert.notEqual(err,null);
-        })
-    });
-
-    it('read stream', function() {
-        var msg = new MessageDictionary().init();
-        msg.readStream('/',function(err,data) {
-            assert.notEqual(err,null);
+        msg.writeStream('home/aaa',{ flag:'wx'},'',function(err,data) {
+            assert.equal(err.code,'ENOENT');
         })
     });
 
@@ -201,15 +194,6 @@ describe('intentional failure test', function() {
             locale:'id'
         });
         test2.drop();
-    });
-
-    it('reload with no file path', function(done) {
-        this.timeout(10000);
-        var msg = new MessageDictionary().init();
-        msg.reload(function(err) {
-            assert.notEqual(err,null);
-            done();
-        });
     });
 
 });
