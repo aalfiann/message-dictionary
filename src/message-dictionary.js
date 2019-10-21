@@ -49,18 +49,31 @@ class MessageDictionary {
      * @return {string}
      */
     getFilename() {
-        return path.join(__dirname,this.dirPath + '/' + this.namespace + '/' + this.locale + '.js');
+        return this.dirPath + '/' + this.namespace + '/' + this.locale + '.js';
+    }
+
+    /**
+     * Make Directory if not exists
+     * @param {string} file     File path
+     * @param {fn} callback     Callback(error)
+     * @return {callback} 
+     */
+    makeDir(file, callback) {
+        mkdirp(path.dirname(file), function (err) {
+            if(err) return callback(err);
+            callback();
+        });
     }
 
     /**
      * Write to file
-     * @param {fn} callback      [optional] Callback(err, status)
+     * @param {fn} callback      [optional] Callback(error, data)
      */
     write(callback) {
         var self = this;
         if(!this.nosql.isEmpty(this.table) && this.nosql.isArray(this.table)) {
             var file = this.getFilename();
-            mkdirp(path.dirname(file), function (err) {
+            this.makeDir(path.dirname(file), function(err) {
                 if (err) return callback(err);
                 self.writeStream(file,{flag:'w'},JSON.stringify(self.table),function(err,data) {
                     if(err) return callback(err);
@@ -80,7 +93,7 @@ class MessageDictionary {
      * @param {string} file             File path to be write
      * @param {string|object} opt       Default is { flag="w" } 
      * @param {string} data             Content to write
-     * @param {fn} callback              Callback(err, status)
+     * @param {fn} callback              Callback(error, data)
      * @return {callback} 
      */
     writeStream(file,opt,data,callback) {
@@ -111,7 +124,7 @@ class MessageDictionary {
     /**
      * Read Stream
      * @param {string} file     File path to be read
-     * @param {fn} callback      Callback(err, data)
+     * @param {fn} callback      Callback(error, content)
      * @return {callback}
      */
     readStream(file, callback) {
@@ -149,23 +162,29 @@ class MessageDictionary {
 
     /**
      * Reload data from file to table (Asynchronous)
-     * @param {fn} callback      Callback(err, status)
+     * @param {fn} callback      Callback(error, data)
      * @return {callback}
      */
     reload(callback) {
         var self = this;
         var file = self.getFilename();
-        self.readStream(file, (err, data) => {
+        self.makeDir(file,function(err) {
             if(err) {
                 if(self.isCallable(callback)) return callback(err);
-            } else {    
-                self.table = self.nosql.deepClone(JSON.parse(data));
-                if(self.isCallable(callback)) {
-                    callback(null, {
-                        status: true,
-                        message: 'Successfully to reload datatable!'
-                    });
-                }
+            } else {
+                self.readStream(file, (err, data) => {
+                    if(err) {
+                        if(self.isCallable(callback)) return callback(err);
+                    } else {    
+                        self.table = self.nosql.deepClone(JSON.parse(data));
+                        if(self.isCallable(callback)) {
+                            callback(null, {
+                                status: true,
+                                message: 'Successfully to reload datatable!'
+                            });
+                        }
+                    }
+                });
             }
         });
     }
@@ -175,7 +194,7 @@ class MessageDictionary {
      * @param {string} code         ID of message
      * @param {string} message      Value of message
      * @param {object} extend       [optional] Add more data into message
-     * @param {fn} callback          Callback(err, status)
+     * @param {fn} callback          Callback(error, data)
      */
     add(code,message,extend,callback) {
         if(this.nosql.isEmpty(code) || !this.nosql.isString(code)) {
@@ -219,7 +238,7 @@ class MessageDictionary {
      * @param {string} code         ID of message
      * @param {string} message      Value of message
      * @param {object} extend       [optional] Add more data into message
-     * @param {fn} callback          Callback(err, status)
+     * @param {fn} callback          Callback(error, data)
      */
     update(code,message,extend,callback) {
         if(this.nosql.isEmpty(code) || !this.nosql.isString(code)) {
@@ -264,7 +283,7 @@ class MessageDictionary {
     /**
      * Delete message
      * @param {string} code     ID of message
-     * @param {fn} callback     Callback(err, status)
+     * @param {fn} callback     Callback(error, data)
      */
     delete(code,callback) {
         if(this.nosql.isEmpty(code) || !this.nosql.isString(code)) {
@@ -300,10 +319,8 @@ class MessageDictionary {
         var self = this;
         self.table = [];
         fs.unlink(this.getFilename(), function (err) {
-            if(self.isCallable(callback)) {
-                if(err) {
-                    return callback(err);
-                }
+            if(err) {
+                if(self.isCallable(callback)) return callback(err);
             }
         });
     }
