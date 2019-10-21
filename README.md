@@ -29,7 +29,7 @@ var message = new MessageDictionary().init();
 // or with config
 var config = {
     locale: 'en',
-    dirPath: './locales',
+    dirPath: 'locales',
     namespace: 'app'
 }
 var message = new MessageDictionary(config).init();

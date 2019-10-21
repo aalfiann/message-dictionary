@@ -14,7 +14,7 @@ class MessageDictionary {
      * Default is
      * {
      *   "locale": "en",
-     *   "dirPath": "./locales",
+     *   "dirPath": "locales",
      *   "namespace": "app"
      * } 
      */
@@ -31,7 +31,7 @@ class MessageDictionary {
             throw new Error('Config must be an object type!');
         }
         if(!config.locale) this.locale = "en";
-        if(!config.dirPath) this.dirPath = "./locales";
+        if(!config.dirPath) this.dirPath = "locales";
         if(!config.namespace) this.namespace = "app";
     }
 
