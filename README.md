@@ -24,7 +24,6 @@ $ npm install message-dictionary
 ```javascript
 const MessageDictionary = require('message-dictionary');
 
-// or with config
 var config = {
     dirPath: './locales',  // Required
     locale: 'en',
@@ -33,6 +32,7 @@ var config = {
 var message = new MessageDictionary(config).init();
 ```  
 **Note:**
+- `dirPath` is required.
 - `init()` is to load the data message.
 - It's better to set as global variable if you are only have one language.
 
