@@ -49,7 +49,7 @@ class MessageDictionary {
      * @return {string}
      */
     getFilename() {
-        return path.join(__dirname,this.dirPath + '/' + this.namespace + '/' + this.locale + '.js');
+        return path.join(this.dirPath + '/' + this.namespace + '/' + this.locale + '.js');
     }
 
     /**
