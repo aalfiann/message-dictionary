@@ -151,17 +151,16 @@ function _readStream(file, callback) {
  * @return {this}
  */
 function load() {
+    table = [];
     var self = this;
     var file = self.getFilename();
     try{
         var data = fs.readFileSync(file, "utf8");   
         if(!nosql.isEmpty(data)) {
             table = nosql.deepClone(JSON.parse(data));
-        } else {
-            table = [];
         }
     } catch (err) {
-        table = [];
+        
     }
     return self;
 }
