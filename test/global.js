@@ -29,16 +29,15 @@ describe('global or singleton test', function() {
         assert.deepEqual(message3.list(),[ { code: '007', message: { en: 'global or singleton test' } } ]);
     });
 
-    it('re-init and load will change globally', function(done) {
+    it('re-init and reload will change globally', function(done) {
         const message4 = require('../src/message-dictionary');
         message4.init({
             dirPath: path.join('./locales'),
             namespace: 'global2'
-        }).load();
-        setTimeout(function () {
+        }).reload(function(err) {
             assert.deepEqual(message4.list(),[]);
             done();
-        }, 1000)
+        });
     });
 
     it('cleanup global test', function() {

@@ -171,6 +171,7 @@ function load() {
  * @return {callback}
  */
 function reload(callback) {
+    table = [];
     var self = this;
     var file = self.getFilename();
     self._readStream(file, (err, data) => {

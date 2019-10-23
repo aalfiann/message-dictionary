@@ -28,12 +28,18 @@ var config = {
     dirPath: require('path').join('./locales'),  // Required
     namespace: 'app'
 }
+
+// Load Synchronous
 message.init(config).load();
+
+// Or Load Asynchronous
+message.init(config).reload();
 ```  
 **Note:**
 - `dirPath` is required.
-- `init()` is to set the configuration.
-- `load()` is to load locales file data into memory.
+- `init(object)` is to set the configuration.
+- `load()` is to load locales file data into memory (`Synchronous`).
+- `reload(callback)` is to load locales file data into memory (`Asynchronous`). Callback is `optional`.
 - This library is working like singleton. Once this called, this will shared globally, so you don't need to always load and re-init.
 
 
@@ -96,7 +102,7 @@ message.updateMessage('EX001','en','Just update data!',{user:'doe'},function(err
 console.log(message.get('EX001', 'en'));
 
 // output
-// { code:'EX001', message: { en: 'Just update data!' }, user:'doe' }
+// { code:'EX001', message: 'Just update data!', user:'doe' }
 ```
 
 ### Delete Message Locale
