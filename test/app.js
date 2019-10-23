@@ -37,11 +37,25 @@ describe('message-dictionary test', function() {
         },1000);
     });
 
-    it('reload list', function(done) {
+    it('data is already reloaded without call reload', function(done) {
         this.timeout(10000);
         message.addMessage('234','en','Insert data successfully!',{user:'doe'},function(err,data) {
             if(err) return console.log('ERROR: '+JSON.stringify(err));
         });
+        setTimeout(function(){
+            assert.deepEqual(message.list(),[ 
+                    { code: '123', message: { en: 'Insert data successfully!' } },
+                    { code: '234',
+                      message: { en: 'Insert data successfully!' },
+                      user: 'doe' } 
+                ]);
+            done();
+        },1000);
+    });
+
+    it('reload list callback is optional', function(done) {
+        this.timeout(10000);
+        message.reload();
         setTimeout(function(){
             assert.deepEqual(message.list(),[ 
                     { code: '123', message: { en: 'Insert data successfully!' } },

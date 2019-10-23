@@ -34,7 +34,7 @@ message.init(config).load();
 - `dirPath` is required.
 - `init()` is to set the configuration.
 - `load()` is to load locales file data into memory.
-- This library is working like singleton, so you don't need to always load and re-init.
+- This library is working like singleton. Once this called, this will shared globally, so you don't need to always load and re-init.
 
 
 ### Get List
@@ -59,7 +59,7 @@ message.addMessage('EX001','en','Just example data!','',function(err,data) {
 });
 
 // or with more information
-message.addMessage('EX001','Just example data!',{user:'john'},function(err,data) {
+message.addMessage('EX001','en','Just example data!',{user:'john'},function(err,data) {
    if(data.status == true) {
         console.log(message.list());
 
@@ -71,7 +71,7 @@ message.addMessage('EX001','Just example data!',{user:'john'},function(err,data)
 
 ### Update Message
 ```javascript
-message.updateMessage('EX001','Just update data!','',function(err,data) {
+message.updateMessage('EX001','en','Just update data!','',function(err,data) {
     if(data.status == true) {
         console.log(message.list());
 
@@ -81,7 +81,7 @@ message.updateMessage('EX001','Just update data!','',function(err,data) {
 });
 
 // or with more information
-message.updateMessage('EX001','Just update data!',{user:'doe'},function(err,data) {
+message.updateMessage('EX001','en','Just update data!',{user:'doe'},function(err,data) {
     if(data.status == true) {
         console.log(message.list());
 

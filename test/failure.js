@@ -104,7 +104,6 @@ describe('intentional failure test', function() {
     });
 
     it('reload with wrong path with no callback', function() {
-        this.timeout(10000);
         message.init({dirPath:'/'});
         message.reload();
     });
@@ -233,22 +232,17 @@ describe('intentional failure test', function() {
         });
     });
 
-    it('cleanup test', function() {
+    it('cleanup app and failure test', function() {
         message.init({
             dirPath: path.join('./locales'),
             namespace:'app'
-        });
-        message.reload();
-        message.drop();
+        }).drop();
         message.init({
             dirPath: path.join('./locales'),
             namespace:'test'
-        });
-        message.drop(function(err) {
+        }).drop(function(err) {
             if(err) return console.log(err);
         });
-        message.reload();
-        message.load();
     });
 
 });

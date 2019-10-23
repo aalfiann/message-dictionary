@@ -38,20 +38,16 @@ describe('global or singleton test', function() {
         assert.deepEqual(message4.list(),[]);
     });
 
-    it('cleanup global2 test', function() {
+    it('cleanup global test', function() {
         const message5 = require('../src/message-dictionary');
         message5.init({
             dirPath: path.join('./locales'),
-            namespace: 'global2'
-        }).load().drop();
-    });
-
-    it('cleanup global test', function() {
-        const message6 = require('../src/message-dictionary');
-        message6.init({
-            dirPath: path.join('./locales'),
             namespace: 'global'
-        }).load().drop();
+        }).drop();
+        message5.init({
+            dirPath: path.join('./locales'),
+            namespace: 'global2'
+        }).drop();
     });
 
 })
