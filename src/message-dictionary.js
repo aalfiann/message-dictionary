@@ -31,41 +31,12 @@ module.exports = {
 }
 
 /**
- * Init configuration
- * @param {*} config 
- */
-function init(config) {
-    var self = this;
-    if(!nosql.isEmpty(config) && nosql.isObject(config)) {
-        for(var key in config) {
-            if(config.hasOwnProperty(key)) {
-                [key] = config[key];
-            }
-        }
-    } else {
-        throw new Error('Config must be an object type!');
-    }
-    if(config.dirPath) dirPath = config.dirPath;
-    if(config.namespace) namespace = config.namespace;
-    if(nosql.isEmpty(config.dirPath)) throw new Error('dirPath is required!');
-    return self;
-}
-
-/**
  * Check the parameter is callback
  * @param {function} fn 
  * @return {bool}
  */
 function _isCallable(fn) {
     return typeof fn === "function";
-}
-
-/**
- * Get Filename
- * @return {string}
- */
-function getFilename() {
-    return path.join(dirPath + '/' + namespace + '.js');
 }
 
 /**
@@ -100,28 +71,29 @@ function _write(callback) {
  * @return {callback} 
  */
 function _writeStream(file,opt,data,callback) {
-    let writeStream = fs.createWriteStream(file,opt);
+    var process = new Promise((resolve,reject) => {
+        let writeStream = fs.createWriteStream(file,opt);
 
-    // write some data string with a utf8 encoding
-    writeStream.write(data, 'utf8');
-
-    writeStream.on('error', function(err) {
+        writeStream.write(data, 'utf8');
         writeStream.end();
-        return callback(err);
-    });
 
-    // the finish event is emitted when all data has been flushed from the stream
-    writeStream.on('finish', () => {
-        // close the stream
-        writeStream.end();
-        return callback(null,{
-            status:true,
-            message:'Data successfully saved!'
+        writeStream.on('error', function(err) {
+            reject(err);
+        });
+
+        writeStream.on('finish', () => {
+            resolve({
+                status:true,
+                message:'Data successfully saved!'
+            });
         });
     });
 
-    // close the stream
-    writeStream.end();
+    process.then(result => {
+        callback(null,result);
+    }, error => {
+        callback(error);
+    });
 }
 
 /**
@@ -131,19 +103,58 @@ function _writeStream(file,opt,data,callback) {
  * @return {callback}
  */
 function _readStream(file, callback) {
-    const chunks = [];
-    let stream = fs.createReadStream(file,{flag:'w+'});
-    stream.on('error', (err) => {
-        callback(err);
-    });
+    var process = new Promise((resolve, reject) => {
+        const chunks = [];
+        let stream = fs.createReadStream(file,{flag:'w+'});
+        stream.on('error', (err) => {
+            reject(err);
+        });
         
-    stream.on('data', (chunk) => {
-        chunks.push(null, chunk.toString());
+        stream.on('data', (chunk) => {
+            chunks.push(null, chunk.toString());
+        });
+
+        stream.on('end', () => {
+            resolve(chunks.join(''));
+        });
     });
 
-    stream.on('end', () => {
-        callback(null, chunks.join(''));
+    process.then(result => {
+        callback(null,result);
+    },error => {
+        callback(error);
     });
+}
+
+/**
+ * Set table directly (for development use)
+ * @param {array} data      Array with object 
+ */
+function _setTable(data) {
+    var self = this;
+    table = data;
+    return self;
+}
+
+/**
+ * Init configuration
+ * @param {*} config 
+ */
+function init(config) {
+    var self = this;
+    if(!nosql.isEmpty(config) && nosql.isObject(config)) {
+        for(var key in config) {
+            if(config.hasOwnProperty(key)) {
+                [key] = config[key];
+            }
+        }
+    } else {
+        throw new Error('Config must be an object type!');
+    }
+    if(config.dirPath) dirPath = config.dirPath;
+    if(config.namespace) namespace = config.namespace;
+    if(nosql.isEmpty(config.dirPath)) throw new Error('dirPath is required!');
+    return self;
 }
 
 /**
@@ -155,7 +166,7 @@ function load() {
     var self = this;
     var file = self.getFilename();
     try{
-        var data = fs.readFileSync(file, "utf8");   
+        var data = fs.readFileSync(file, "utf8");
         if(!nosql.isEmpty(data)) {
             table = nosql.deepClone(JSON.parse(data));
         }
@@ -288,6 +299,37 @@ function updateMessage(code,locale,message,extend,callback) {
 }
 
 /**
+ * Delete Message
+ * @param {string} code     ID of message
+ * @param {fn} callback     Callback(error, data) 
+ */
+function deleteMessage(code,callback) {
+    if(nosql.isEmpty(code) || !nosql.isString(code)) {
+        throw new Error('Code is required and must be string!');
+    }
+
+    var self = this;
+    nosql.promisify((builder) => {return builder}).then((datatable) => {
+        var find = datatable.set(table).where('code',code).exec();
+        if(find.length > 0) {
+            table = datatable.set(table).delete('code',code).exec();
+            self._write(function(err) {
+                if(err) return callback(err);
+                callback(null, {
+                    status:true,
+                    message:'Data successfully deleted!'
+                });
+            });
+        } else {
+            callback(null, {
+                status:false,
+                message:'Failed to delete, data is not exists!',
+            });
+        }
+    });
+}
+
+/**
  * Delete message locale (only delete the specified locale message)
  * @param {string} code         ID of message
  * @param {string} locale       Two letters of code language
@@ -310,37 +352,6 @@ function deleteMessageLocale(code,locale,callback) {
                 delete find[0].message[locale];
             }
             table = datatable.set(table).modify('code',code,find[0]).exec();
-            self._write(function(err) {
-                if(err) return callback(err);
-                callback(null, {
-                    status:true,
-                    message:'Data successfully deleted!'
-                });
-            });
-        } else {
-            callback(null, {
-                status:false,
-                message:'Failed to delete, data is not exists!',
-            });
-        }
-    });
-}
-
-/**
- * Delete Message
- * @param {string} code     ID of message
- * @param {fn} callback     Callback(error, data) 
- */
-function deleteMessage(code,callback) {
-    if(nosql.isEmpty(code) || !nosql.isString(code)) {
-        throw new Error('Code is required and must be string!');
-    }
-
-    var self = this;
-    nosql.promisify((builder) => {return builder}).then((datatable) => {
-        var find = datatable.set(table).where('code',code).exec();
-        if(find.length > 0) {
-            table = datatable.set(table).delete('code',code).exec();
             self._write(function(err) {
                 if(err) return callback(err);
                 callback(null, {
@@ -384,19 +395,6 @@ function list() {
 /**
  * Get message by code id
  * @param {string} code     ID of message
- * @return {object} 
- */
-function getAll(code) {
-    var datatable = nosql.set(table).where('code',code).exec();
-    if(datatable.length > 0) {
-        return datatable[0];
-    }
-    return {code:'0',message:'Unknown error!'}
-}
-
-/**
- * Get message by code id
- * @param {string} code     ID of message
  * @param {string} locale   Two letters of code language
  * @return {object} 
  */
@@ -418,6 +416,19 @@ function get(code,locale) {
 }
 
 /**
+ * Get message by code id
+ * @param {string} code     ID of message
+ * @return {object} 
+ */
+function getAll(code) {
+    var datatable = nosql.set(table).where('code',code).exec();
+    if(datatable.length > 0) {
+        return datatable[0];
+    }
+    return {code:'0',message:'Unknown error!'}
+}
+
+/**
  * Get current directory setting
  */
 function getDirPath() {
@@ -432,11 +443,9 @@ function getNamespace() {
 }
 
 /**
- * Set table directly (for development use)
- * @param {array} data      Array with object 
+ * Get Filename
+ * @return {string}
  */
-function _setTable(data) {
-    var self = this;
-    table = data;
-    return self;
+function getFilename() {
+    return path.join(dirPath + '/' + namespace + '.js');
 }
