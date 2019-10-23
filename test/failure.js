@@ -1,5 +1,5 @@
 const assert = require('assert');
-const MessageDictionary = require('../src/message-dictionary');
+const message = require('../src/message-dictionary');
 const path = require('path');
 
 describe('intentional failure test', function() {
@@ -8,38 +8,27 @@ describe('intentional failure test', function() {
         dirPath: path.join('./locales')
     }
 
-    it('promisify with catch error', function(){
-        var msg = new MessageDictionary(config);
-        msg.promisify().then(function(message) {
-
-        },function(err){
-            return err;
-        });
-    });
-
     it('drop with no callback', function(done){
         this.timeout(10000);
-        var msg = new MessageDictionary(config).init();
-        msg.drop();
+        message.init(config);
+        message.drop();
         done();
     });
 
     it('drop with wrong path', function(done){
         this.timeout(10000);
-        var msg = new MessageDictionary(config).init();
-        msg.drop(function(err) {
-            if(err === null) assert.deepEqual(msg.list(),[]);
+        message.drop(function(err) {
+            if(err === null) assert.deepEqual(message.list(),[]);
         });
-        msg.drop(function(err) {
-            if(err === null) assert.deepEqual(msg.list(),[]);
+        message.drop(function(err) {
+            if(err === null) assert.deepEqual(message.list(),[]);
         });
         done();
     });
 
     it('update data with empty datatable', function(done) {
         this.timeout(10000);
-        var msg = new MessageDictionary(config).init();
-        msg.update('123','tester', '', function(err,data) {
+        message.updateMessage('123','en','tester', '', function(err,data) {
             if(err) return console.log('ERROR: '+JSON.stringify(err));
             assert.deepEqual(data, { status: false,
                 message: 'Failed to update, data is not exists!' });
@@ -49,8 +38,7 @@ describe('intentional failure test', function() {
 
     it('delete data with empty datatable', function(done) {
         this.timeout(10000);
-        var msg = new MessageDictionary(config).init();
-        msg.delete('123', function(err,data) {
+        message.deleteMessageLocale('123','en', function(err,data) {
             if(err) return console.log('ERROR: '+JSON.stringify(err));
             assert.deepEqual(data, { status: false,
                 message: 'Failed to delete, data is not exists!' });
@@ -60,22 +48,19 @@ describe('intentional failure test', function() {
 
     it('add new duplicate data', function(done) {
         this.timeout(10000);
-        var msg = new MessageDictionary(config).init();
-        msg.add('123','Insert data successfully!','',function(err,data) {
+        message.addMessage('123','en','Insert data successfully!','',function(err,data) {
             if(err) return console.log('ERROR: '+JSON.stringify(err));
         });
-        msg.add('123','Insert data successfully!','',function(err,data) {
+        message.addMessage('123','en','Insert data successfully!','',function(err,data) {
             if(err) return console.log('ERROR: '+JSON.stringify(err));
-            assert.deepEqual(data, { status: false,
-                message: 'Failed to save, data already exists!' });
+            assert.deepEqual(data, { status: true, message: 'Data successfully updated!' });
             done();
         });
     });
 
     it('delete data with empty code', function() {
-        var msg = new MessageDictionary(config).init();
         assert.throws(function(){
-            msg.delete('',function(err,data) {
+            message.deleteMessage('',function(err,data) {
                 
             });
         },Error);
@@ -83,9 +68,8 @@ describe('intentional failure test', function() {
 
     it('write with empty table', function(done) {
         this.timeout(10000);
-        var msg = new MessageDictionary(config).init();
-        msg.table = '';
-        msg.write(function(err,data) {
+        message._setTable('');
+        message._write(function(err,data) {
             assert.deepEqual(data,{ status: false, message: 'Nothing to save!' });
             done();
         });
@@ -93,11 +77,10 @@ describe('intentional failure test', function() {
 
     it('write with singular data table', function(done) {
         this.timeout(10000);
-        var msg = new MessageDictionary(config).init();
         var o = {};
         o.o = o;
-        msg.table = o;
-        msg.write(function(err,data) {
+        message._setTable(o);
+        message._write(function(err,data) {
             assert.deepEqual(data,{ status: false, message: 'Nothing to save!' });
             done();
         });
@@ -105,102 +88,167 @@ describe('intentional failure test', function() {
 
     it('read stream with wrong path', function(done) {
         this.timeout(10000);
-        var msg = new MessageDictionary(config).init();
-        msg.readStream('home/',function(err,data) {
-            assert.equal(err.code,'ENOENT');
+        message._readStream('/',function(err,data) {
+            assert.notEqual(err,null);
             done();
         });
     });
 
     it('reload with wrong path', function(done) {
         this.timeout(10000);
-        var msg = new MessageDictionary({
-            dirPath:'/'
-        }).init();
-        msg.reload(function(err) {
+        message.init({dirPath:'/'});
+        message.reload(function(err) {
             assert.equal(err.code,'ENOENT');
             done();
         });
     });
 
-    it('wrong get key', function() {
-        var msg = new MessageDictionary(config).init();
-        assert.deepEqual(msg.get('000'),{code:0,message:'Unknown error!'});
+    it('reload with wrong path with no callback', function() {
+        this.timeout(10000);
+        message.init({dirPath:'/'});
+        message.reload();
+    });
+
+    it('wrong get key', function(done) {
+        message.init(config);
+        message.reload(function(err,data) {
+            assert.deepEqual(message.get('000','en'),{code:0,message:'Unknown error!'});
+            done();
+        })
     });
 
     it('add with wrong object type in code', function() {
-        var msg = new MessageDictionary(config).init();
-        assert.throws(function(){msg.add([],'','',function() {
+        assert.throws(function(){message.addMessage([],'','','',function() {
 
         })},Error);
     });
 
     it('add with wrong object type in message', function() {
-        var msg = new MessageDictionary(config).init();
-        assert.throws(function(){msg.add('1234',[],'',function() {
+        assert.throws(function(){message.addMessage('1234','en',[],'',function() {
+
+        })},Error);
+    });
+
+    it('add with empty locale', function() {
+        assert.throws(function(){message.addMessage('1234','',[],'',function() {
 
         })},Error);
     });
 
     it('add with wrong object type in extend', function() {
-        var msg = new MessageDictionary(config).init();
-        assert.throws(function(){msg.add('1234','abc',[],function() {
+        assert.throws(function(){message.addMessage('1234','en','abc',[],function() {
 
         })},Error);
     });
     
     it('update with wrong object type in code', function() {
-        var msg = new MessageDictionary(config).init();
-        assert.throws(function(){msg.update([],'','',function() {
+        assert.throws(function(){message.updateMessage([],'','','',function() {
 
         })},Error);
     });
 
     it('update with wrong object type in message', function() {
-        var msg = new MessageDictionary(config).init();
-        assert.throws(function(){msg.update('123',[],'',function() {
+        assert.throws(function(){message.updateMessage('123','en',[],'',function() {
+
+        })},Error);
+    });
+
+    it('update with empty locale', function() {
+        assert.throws(function(){message.updateMessage('123','',[],'',function() {
 
         })},Error);
     });
 
     it('update with wrong object type in extend', function() {
-        var msg = new MessageDictionary(config).init();
-        assert.throws(function(){msg.update('123','abc',[],function() {
+        assert.throws(function(){message.updateMessage('123','en','abc',[],function() {
 
         })},Error);
     });
 
-    it('init with empty file', function() {
-        var msg = new MessageDictionary({
-            locale:'id',
-            dirPath: path.join('./locales')
-        }).init();
-        assert.deepEqual(msg.table,[]);
+    it('delete message by locale with empty code', function() {
+        assert.throws(function(){message.deleteMessageLocale('','en','abc',[],function() {
+
+        })},Error);
+    });
+
+    it('delete message by locale with empty locale', function() {
+        assert.throws(function(){message.deleteMessageLocale('123','','abc',[],function() {
+
+        })},Error);
     });
 
     it('write stream', function() {
-        var msg = new MessageDictionary(config).init();
-        msg.writeStream('home/aaa',{ flag:'wx'},'',function(err,data) {
-            assert.equal(err.code,'ENOENT');
+        message._writeStream('/',{ flag:'wx'},'',function(err,data) {
+            assert.notEqual(err,null);
         })
     });
 
     it('delete with error path', function() {
-        var msg = new MessageDictionary(config).init();
-        msg.delete('000',function(err,data) {
+        message.deleteMessage('000',function(err,data) {
             assert.deepEqual(data,{ status: false,
                 message: 'Failed to delete, data is not exists!' });
         })
     });
 
-    it('cleanup test', function() {
-        var test1 = new MessageDictionary(config);
-        test1.drop();
-        var test2 = new MessageDictionary({
-            locale:'id',
-            dirPath: path.join('./locales')
+    it('get data by locale with empty code', function() {
+        message.init({
+            dirPath: path.join('./locales'),
+            namespace:'app'
+        }).load();        
+        assert.deepEqual(message.get('','id'),{ code: '0', message: 'Unknown error!' });
+    });
+    
+    it('get data by locale which is not exists', function() {
+        message.init({
+            dirPath: path.join('./locales'),
+            namespace:'app'
+        }).load();        
+        assert.deepEqual(message.get('234','id'),{ code: '234', message: 'Unknown error!' });
+    });
+
+    it('getAll with empty code', function() {
+        message.init({
+            dirPath: path.join('./locales'),
+            namespace:'app'
+        }).load();
+        assert.deepEqual(message.getAll(''),{ code: '0', message: 'Unknown error!' });
+    });
+
+    it('getAll which is not exists', function() {
+        message.init({
+            dirPath: path.join('./locales'),
+            namespace:'app'
+        }).load();
+        assert.deepEqual(message.getAll('123'),{ code: '0', message: 'Unknown error!' });
+    });
+
+    it('load with empty file', function() {
+        message.init({
+            dirPath: path.join('./locales'),
+            namespace:'test'
         });
-        test2.drop();
+        message._writeStream(path.join('./locales/test.js'),{flag:'w'},'', function (err,content) {
+            message.load();
+            assert.deepEqual(message.list(),[]);
+        });
+    });
+
+    it('cleanup test', function() {
+        message.init({
+            dirPath: path.join('./locales'),
+            namespace:'app'
+        });
+        message.reload();
+        message.drop();
+        message.init({
+            dirPath: path.join('./locales'),
+            namespace:'test'
+        });
+        message.drop(function(err) {
+            if(err) return console.log(err);
+        });
+        message.reload();
+        message.load();
     });
 
 });

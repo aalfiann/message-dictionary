@@ -22,19 +22,19 @@ $ npm install message-dictionary
 
 ## Usage
 ```javascript
-const MessageDictionary = require('message-dictionary');
+const message = require('message-dictionary');
 
 var config = {
-    dirPath: './locales',  // Required
-    locale: 'en',
+    dirPath: require('path').join('./locales'),  // Required
     namespace: 'app'
 }
-var message = new MessageDictionary(config).init();
+message.init(config).load();
 ```  
 **Note:**
 - `dirPath` is required.
-- `init()` is to load the data message.
-- It's better to set as global variable if you are only have one language.
+- `init()` is to set the configuration.
+- `load()` is to load locales file data into memory.
+- This library is working like singleton, so you don't need to always load and re-init.
 
 
 ### Get List
@@ -49,59 +49,72 @@ So let's us create one data. See below.
 
 ### Add Message
 ```javascript
-message.add('EX001','Just example data!','',function(err,data) {
+message.addMessage('EX001','en','Just example data!','',function(err,data) {
     if(data.status == true) {
         console.log(msg.list());
 
         // output
-        // [ { code:'EX001', message:'Just example data!' } ]
+        // [ { code:'EX001', message: { en: 'Just example data!' } } ]
     }
 });
 
 // or with more information
-message.add('EX001','Just example data!',{user:'john'},function(err,data) {
+message.addMessage('EX001','Just example data!',{user:'john'},function(err,data) {
    if(data.status == true) {
         console.log(message.list());
 
         // output
-        // [ { code:'EX001', message:'Just example data!', user:'john' } ]
+        // [ { code:'EX001', message: { en: 'Just example data!' }, user: 'john' } ]
     }
 });
 ```
 
 ### Update Message
 ```javascript
-message.update('EX001','Just update data!','',function(err,data) {
+message.updateMessage('EX001','Just update data!','',function(err,data) {
     if(data.status == true) {
         console.log(message.list());
 
         // output
-        // [ { code:'EX001', message:'Just update data!' } ]
+        // [ { code:'EX001', message: { en: 'Just update data!' } } ]
     } 
 });
 
 // or with more information
-message.add('EX001','Just update data!',{user:'doe'},function(err,data) {
+message.updateMessage('EX001','Just update data!',{user:'doe'},function(err,data) {
     if(data.status == true) {
         console.log(message.list());
 
         // output
-        // [ { code:'EX001', message:'Just update data!', user:'doe' } ]
+        // [ { code:'EX001', message: { en: 'Just update data!' }, user:'doe' } ]
     }
 });
 ```
 
 ### Get Message
 ```javascript
-console.log(message.get('EX001'));
+console.log(message.get('EX001', 'en'));
 
 // output
-// { code:'EX001', message:'Just update data!', user:'doe' }
+// { code:'EX001', message: { en: 'Just update data!' }, user:'doe' }
+```
+
+### Delete Message Locale
+```javascript
+message.deleteMessageLocale('EX001', 'en',function(err,data) {
+    if(data && data.status == true) {
+        console.log(message.list());
+
+        // output
+        // if you have only one records and only one locale, then it will return 
+        // [ { code:'EX001', message: {}, user: 'doe' } ]
+    } 
+});
 ```
 
 ### Delete Message
 ```javascript
-message.delete('EX001',function(err,data) {
+message.deleteMessage('EX001',function(err,data) {
     if(data && data.status == true) {
         console.log(message.list());
 

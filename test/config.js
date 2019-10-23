@@ -1,5 +1,5 @@
 const assert = require('assert');
-const MessageDictionary = require('../src/message-dictionary');
+const message = require('../src/message-dictionary');
 const path = require('path');
 
 describe('config test', function() {
@@ -10,14 +10,28 @@ describe('config test', function() {
     
     it('not allow empty config', function() {
         assert.throws(function(){
-            var msg = new MessageDictionary();
+            message.init();
         },Error);
     });
     
     it('config must be an object', function() {
         assert.throws(function(){
-            var msg = new MessageDictionary([]);
+            message.init([]);
         },Error);
+    });
+
+    it('config without dirPath', function() {
+        assert.throws(function(){
+            message.init({
+                namespace:'app'
+            });
+        },Error);
+    });
+
+    it('check default config', function() {
+        message.init(config);
+        assert.equal(message.getDirPath(),'locales');
+        assert.equal(message.getNamespace(),'app');
     });
 
     it('config must be hasOwnProperty',function(){
@@ -25,26 +39,16 @@ describe('config test', function() {
             name: 'inherited',
             dirPath: path.join('./locales')
         });
-        var msg = new MessageDictionary(configs);
-        assert.equal(msg.locale,'en');
-        assert.equal(msg.namespace,'app');
-    });
-
-    it('check default config', function() {
-        var msg = new MessageDictionary(config);
-        assert.equal(msg.locale,'en');
-        assert.equal(msg.namespace,'app');
+        message.init(configs);
+        assert.equal(message.getNamespace(),'app');
     });
 
     it('change default config', function() {
-        var msg = new MessageDictionary({
-            locale:'id',
-            dirPath:path.join('./locales/api'),
-            namespace:'error'
-        });
-        assert.equal(msg.locale,'id');
-        assert.equal(msg.dirPath.endsWith('api'),true);
-        assert.equal(msg.namespace,'error');
+        message.init({
+            namespace:'test',
+            dirPath: path.join('./locales')
+        })
+        assert.equal(message.getNamespace(),'test');
     });
 
 });

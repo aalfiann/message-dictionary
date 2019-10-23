@@ -1,6 +1,7 @@
 const assert = require('assert');
-const MessageDictionary = require('../src/message-dictionary');
+const message = require('../src/message-dictionary');
 const path = require('path');
+
 describe('message-dictionary test', function() {
 
     var config = {
@@ -8,99 +9,116 @@ describe('message-dictionary test', function() {
     }
     
     it('filename check', function() {
-        var msg = new MessageDictionary(config);
-        var file = msg.getFilename();
-        assert.equal(file.endsWith('locales/app/en.js'),true);
+        message.init(config);
+        var file = message.getFilename();
+        assert.equal(file.endsWith('locales/app.js'),true);
     });
 
     it('drop datatable', function(done) {
         this.timeout(10000);
-        var msg = new MessageDictionary(config).init();
-        msg.drop(function(err) {
-            if(err === null) assert.deepEqual(msg.list(),[]);
+        message.drop(function(err) {
+            if(err === null) assert.deepEqual(message.list(),[]);
         });
         done();
     });
 
     it('get list', function() {
-        var msg = new MessageDictionary(config).init();
-        assert.deepEqual(msg.list(),[]);
-    })
+        assert.deepEqual(message.list(),[]);
+    });
 
     it('add new data', function(done) {
         this.timeout(10000);
-        var msg = new MessageDictionary(config).init();
-        msg.add('123','Insert data successfully!','',function(err,data) {
+        message.addMessage('123','en','Insert data successfully!','',function(err,data) {
             if(err) return console.log('ERROR: '+JSON.stringify(err));
         });
         setTimeout(function(){
-            assert.deepEqual(msg.list(),[ { code: '123', message: 'Insert data successfully!' } ]);
+            assert.deepEqual(message.list(),[ { code: '123', message: { en:'Insert data successfully!' } } ]);
             done();
         },1000);
     });
 
     it('reload list', function(done) {
         this.timeout(10000);
-        var msg = new MessageDictionary(config).init();
-        msg.add('234','Insert data successfully!',{user:'doe'},function(err,data) {
+        message.addMessage('234','en','Insert data successfully!',{user:'doe'},function(err,data) {
             if(err) return console.log('ERROR: '+JSON.stringify(err));
-            msg.reload(function(err,newdata) {
-                if(err) return console.log('ERROR: '+JSON.stringify(err));
-                msg.reload();
-            })
         });
         setTimeout(function(){
-            assert.deepEqual(msg.list(),[ 
-                { code: '123', message: 'Insert data successfully!' },
-                { code: '234', message: 'Insert data successfully!',user:'doe' } 
-            ]);
+            assert.deepEqual(message.list(),[ 
+                    { code: '123', message: { en: 'Insert data successfully!' } },
+                    { code: '234',
+                      message: { en: 'Insert data successfully!' },
+                      user: 'doe' } 
+                ]);
             done();
         },1000);
     });
 
-    it('get message asynchronous', function(done) {
-        var msg = new MessageDictionary(config);
-        var result = undefined;
-        var expected = { code: '123', message: 'Insert data successfully!' };
-        msg.promisify(builder => {return builder}).then(message => {
-            result = message.init().get('123');
-            assert.deepEqual(result,expected);
-            done();
-        });
-    });
-
     it('update data', function(done) {
         this.timeout(10000);
-        var msg = new MessageDictionary(config).init();
-        msg.update('123','Update data successfully!','',function(err,data) {
+        message.updateMessage('123','en','Update data successfully!','',function(err,data) {
             if(err) return console.log('ERROR: '+JSON.stringify(err));
         });
         setTimeout(function() {
-            assert.deepEqual(msg.get('123'),{ code: '123', message: 'Update data successfully!' });
+            assert.deepEqual(message.getAll('123'),{ code: '123', message: { en: 'Update data successfully!' } });
             done();
         },1000);
     });
 
     it('update data with extend information', function(done) {
         this.timeout(10000);
-        var msg = new MessageDictionary(config).init();
-        msg.update('123','Update data successfully!',{user:'john'},function(err,data) {
+        message.updateMessage('123','en','Update data successfully!',{user:'john'},function(err,data) {
             if(err) return console.log('ERROR: '+JSON.stringify(err));
         });
         setTimeout(function() {
-            assert.deepEqual(msg.get('123'),{ code: '123', message: 'Update data successfully!', user:'john' });
+            assert.deepEqual(message.getAll('123'),{ code: '123', message: { en: 'Update data successfully!' }, user:'john' });
+            done();
+        },1000);
+    });
+
+    it('get data', function() {
+        assert.deepEqual(message.get('123','en'),{ code: '123',
+            user: 'john',
+            message: 'Update data successfully!' 
+        });
+    });
+
+    it('delete data by locale', function(done) {
+        this.timeout(10000);
+        message.deleteMessageLocale('123','en', function(err,data) {
+            if(err) return console.log('ERROR: '+JSON.stringify(err));
+        });
+        setTimeout(function() {
+            assert.deepEqual(message.list(),[ 
+                { code: '234', message: { en: 'Insert data successfully!' }, user: 'doe' },
+                { code: '123', message: {}, user: 'john' } 
+            ]);
+            done();
+        },1000);
+    });
+
+    it('delete data by locale which is not exists', function(done) {
+        this.timeout(10000);
+        message.deleteMessageLocale('123','id', function(err,data) {
+            if(err) return console.log('ERROR: '+JSON.stringify(err));
+        });
+        setTimeout(function() {
+            assert.deepEqual(message.list(),[ 
+                { code: '234', message: { en: 'Insert data successfully!' }, user: 'doe' },
+                { code: '123', message: {}, user: 'john' } 
+            ]);
             done();
         },1000);
     });
 
     it('delete data', function(done) {
         this.timeout(10000);
-        var msg = new MessageDictionary(config).init();
-        msg.delete('123', function(err,data) {
+        message.deleteMessage('123', function(err,data) {
             if(err) return console.log('ERROR: '+JSON.stringify(err));
         });
         setTimeout(function() {
-            assert.deepEqual(msg.list(),[ { code: '234', message: 'Insert data successfully!', user: 'doe' } ]);
+            assert.deepEqual(message.list(),[ 
+                { code: '234', message: { en: 'Insert data successfully!' }, user: 'doe' } 
+            ]);
             done();
         },1000);
     });
