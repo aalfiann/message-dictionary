@@ -1,6 +1,6 @@
 {
   "name": "message-dictionary",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "A Simple Message Dictionary Manager for NodeJS (Multi Language)",
   "main": "src/message-dictionary.js",
   "scripts": {
@@ -28,10 +28,9 @@
   },
   "homepage": "https://github.com/aalfiann/message-dictionary#readme",
   "dependencies": {
-    "fly-json-odm": "^1.5.5"
+    "fly-json-odm": "^1.7.0"
   },
   "devDependencies": {
-    "fly-json-odm": "^1.5.5",
     "coveralls": "^3.0.7",
     "mocha": "^6.2.2",
     "mocha-lcov-reporter": "^1.3.0",
