@@ -2,10 +2,9 @@
 [![NPM](https://nodei.co/npm/message-dictionary.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/message-dictionary/)  
   
 [![npm version](https://img.shields.io/npm/v/message-dictionary.svg?style=flat-square)](https://www.npmjs.org/package/message-dictionary)
-[![Build Status](https://travis-ci.org/aalfiann/message-dictionary.svg?branch=master)](https://travis-ci.org/aalfiann/message-dictionary)
+[![Build Status](https://travis-ci.com/aalfiann/message-dictionary.svg?branch=master)](https://travis-ci.com/aalfiann/message-dictionary)
 [![Coverage Status](https://coveralls.io/repos/github/aalfiann/message-dictionary/badge.svg?branch=master)](https://coveralls.io/github/aalfiann/message-dictionary?branch=master)
 [![Known Vulnerabilities](https://snyk.io//test/github/aalfiann/message-dictionary/badge.svg?targetFile=package.json)](https://snyk.io//test/github/aalfiann/message-dictionary?targetFile=package.json)
-[![dependencies Status](https://david-dm.org/aalfiann/message-dictionary/status.svg)](https://david-dm.org/aalfiann/message-dictionary)
 ![License](https://img.shields.io/npm/l/message-dictionary)
 ![NPM download/month](https://img.shields.io/npm/dm/message-dictionary.svg)
 ![NPM download total](https://img.shields.io/npm/dt/message-dictionary.svg)  
